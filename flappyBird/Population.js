@@ -35,6 +35,49 @@ class Population {
     }
     return this.players[0];
   }
+
+  look(pipes1, pipes2) {
+    this.players.filter(p => !p.dead).forEach(p => {
+      for (var j = 0; j < superSpeed; j++) {
+        p.look(pipes1, pipes2);
+      }
+    });
+  }
+
+  think() {
+    this.players.filter(p => !p.dead).forEach(p => {
+      for (var j = 0; j < superSpeed; j++) {
+        p.think();
+      }
+    });
+  }
+
+  update(ground, pipes1, pipes2) {
+    this.players.filter(p => !p.dead).forEach(p => {
+      for (var j = 0; j < superSpeed; j++) {
+        p.update(ground, pipes1, pipes2);
+      }
+    });
+  }
+
+  show() {
+    var firstShown = false;
+    this.players.filter(p => !p.dead).forEach(p => {
+      if (!showNothing && (!showBest || !firstShown)) {
+          p.show();
+          firstShown = true;
+        }
+    });
+  }
+
+  score() {
+    this.players.filter(p => !p.dead).forEach(p => {
+      if (p.score > this.globalBestScore) {
+        this.globalBestScore = p.score;
+      }
+    });
+  }
+
   updateAlive() {
       var firstShown = false;
       for (var i = 0; i < this.players.length; i++) {
@@ -56,6 +99,7 @@ class Population {
       }
 
     }
+
     //------------------------------------------------------------------------------------------------------------------------------------------
     //returns true if all the players are dead      sad
   done() {

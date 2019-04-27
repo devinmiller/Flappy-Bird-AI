@@ -27,7 +27,7 @@ class Pipe {
   }
 
   update() {
-    this.x -= panSpeed * this.randomMultiplier;
+    this.x -= panSpeed;// * this.randomMultiplier;
   }
 
   colided(p) {

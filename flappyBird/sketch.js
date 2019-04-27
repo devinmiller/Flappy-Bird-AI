@@ -2,8 +2,9 @@ var panSpeed = 8;
 var gravity = 3;
 var player;
 
-var pipes;
+var pipes1;
 var pipes2;
+var pipeRandomNo = 0;
 var ground;
 var pauseBecauseDead;
 var birdSprite;
@@ -36,7 +37,7 @@ var genPlayerTemp; //player
 var showNothing = false;
 
 var randomPipeHeights = [];
-var isChristmas = true;
+var isChristmas = false;
 
 function preload() {
   if (isChristmas) {
@@ -51,24 +52,31 @@ function preload() {
 
 }
 
+function resetPipes() {
+  pipes1 = new PipePair(true);
+  pipes2 = new PipePair(false, pipes1, pipeRandomNo);
+  pipes2.setX(1.5 * canvas.width + pipes2.topPipe.width / 2);
+}
+
 function setup() {
   window.canvas = createCanvas(600, 800);
 
   player = new Player();
-  // pipes = new PipePair(true);
-  // pipes2 = new PipePair(false, pipes);
-  // pipes2.setX(1.5 * canvas.width + pipes2.topPipe.width / 2);
+
+  resetPipes();
+
   ground = new Ground();
 
   pauseBecauseDead = false;
 
-  population = new Population(1000);
+  population = new Population(100);
   humanPlayer = new Player();
 }
 
 function draw() {
   // background(135, 206, 250);
   drawToScreen();
+
   if (showBestEachGen) { //show the best of each gen
     showBestPlayersForEachGeneration();
   } else if (humanPlaying) { //if the user is controling the ship[
@@ -77,14 +85,46 @@ function draw() {
     showBestEverPlayer();
   } else { //if just evolving normally
     if (!population.done()) { //if any players are alive then update them
-      population.updateAlive();
+      population.look(pipes1, pipes2);
+      population.think();
+
+      updatePipes();
+
+      population.update(ground, pipes1, pipes2);
+
+      pipes1.show();
+      pipes2.show();
+
+      population.show();
+
+      ground.show();
+
+      population.score();
     } else { //all dead
+      resetPipes();
+
       //genetic algorithm
       population.naturalSelection();
     }
   }
   // writeInfo();
 }
+
+function updatePipes() {
+  pipes1.update();
+  pipes2.update();
+  ground.update();
+  //if either pipe is off the screen then reset the pipe
+  if (pipes1.offScreen()) {
+    pipes1 = new PipePair(false, pipes2, pipeRandomNo);
+    pipeRandomNo++;
+  }
+  if (pipes2.offScreen()) {
+    pipes2 = new PipePair(false, pipes1, pipeRandomNo);
+    pipeRandomNo++;
+  }
+}
+
 //-----------------------------------------------------------------------------------
 function showBestPlayersForEachGeneration() {
   if (!genPlayerTemp.dead) { //if current gen player is not dead then update it
@@ -106,11 +146,23 @@ function showBestPlayersForEachGeneration() {
 //-----------------------------------------------------------------------------------
 function showHumanPlaying() {
   if (!humanPlayer.dead) { //if the player isnt dead then move and show the player based on input
-    humanPlayer.look();
-    humanPlayer.update();
+    humanPlayer.look(pipes1, pipes2);
+    humanPlayer.think();
+
+    updatePipes();
+
+    humanPlayer.update(ground, pipes1, pipes2);
+
+    pipes1.show();
+    pipes2.show();
+
     humanPlayer.show();
-  } else { //once done return to ai
-    humanPlaying = false;
+
+    ground.show();
+  } else { //once done reset for another
+    resetPipes();
+
+    humanPlayer = new Player();
   }
 }
 //-----------------------------------------------------------------------------------
@@ -196,8 +248,6 @@ function writeInfo() {
 
   }
 }
-
-
 
 function keyPressed() {
   switch (key) {
